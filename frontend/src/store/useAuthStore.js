@@ -16,7 +16,7 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check");clear
+      const res = await axiosInstance.get("/auth/check");
 
       set({ authUser: res.data });
       get().connectSocket();
@@ -82,23 +82,29 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+
+
   connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+  const { authUser } = get();
+  const userId = authUser?._id;
 
-    const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
-    });
-    socket.connect();
+  if (!userId || get().socket?.connected) return;
 
-    set({ socket: socket });
+  const socket = io(BASE_URL, {
+    query: {
+      userId,
+    },
+  });
 
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
-  },
+  socket.connect();
+
+  set({ socket });
+
+  socket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds });
+  });
+},
+
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
